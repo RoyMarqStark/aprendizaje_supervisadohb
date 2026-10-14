@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMS Titanic — Machine Learning Dashboard</title>
+    <meta name="description" content="Dashboard interactivo de Machine Learning para análisis de supervivencia del Titanic. Comparación de Random Forest vs Regresión Logística.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Particle background -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav" id="main-nav">
+        <div class="nav__logo">
+            <span class="nav__icon">⚓</span>
+            <span class="nav__title">RMS TITANIC</span>
+        </div>
+        <ul class="nav__links">
+            <li><a href="#hero">Inicio</a></li>
+            <li><a href="#dataset">Dataset</a></li>
+            <li><a href="#models">Modelos</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#survival">Supervivencia</a></li>
+            <li><a href="#predict">Predecir</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero" id="hero">
+        <div class="hero__overlay"></div>
+        <div class="hero__content">
+            <p class="hero__subtitle animate-fade-up">Machine Learning · Análisis Predictivo</p>
+            <h1 class="hero__title animate-fade-up delay-1">
+                <span class="hero__title-line">RMS</span>
+                <span class="hero__title-line hero__title-main">TITANIC</span>
+            </h1>
+            <div class="hero__divider animate-fade-up delay-2">
+                <span class="hero__divider-star">✦</span>
+            </div>
+            <p class="hero__tagline animate-fade-up delay-3">Descifrando los patrones de supervivencia del viaje inaugural</p>
+            <div class="hero__date animate-fade-up delay-4">
+                <span>10 Abril 1912 — Southampton</span>
+            </div>
+            <a href="#dataset" class="hero__cta animate-fade-up delay-5">Explorar Resultados</a>
+        </div>
+        <div class="hero__wave">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+                <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,60 1440,80 L1440,120 L0,120 Z" fill="var(--bg-primary)"/>
+            </svg>
+        </div>
+    </header>
+
+    <!-- Dataset Overview -->
+    <section class="section" id="dataset">
+        <div class="container">
+            <div class="section__header">
+                <span class="section__label">DATOS</span>
+                <h2 class="section__title">Panorama del Dataset</h2>
+                <p class="section__desc">891 pasajeros. Dos destinos posibles. Los datos revelan quiénes tenían más probabilidades de sobrevivir.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card animate-on-scroll" id="stat-total">
+                    <div class="stat-card__icon">🚢</div>
+                    <div class="stat-card__value" data-count="891">0</div>
+                    <div class="stat-card__label">Pasajeros totales</div>
+                </div>
+                <div class="stat-card stat-card--survived animate-on-scroll" id="stat-survived">
+                    <div class="stat-card__icon">🛟</div>
+                    <div class="stat-card__value" data-count="342">0</div>
+                    <div class="stat-card__label">Sobrevivientes</div>
+                    <div class="stat-card__pct">38.4%</div>
+                </div>
+                <div class="stat-card stat-card--perished animate-on-scroll" id="stat-perished">
+                    <div class="stat-card__icon">🌊</div>
+                    <div class="stat-card__value" data-count="549">0</div>
+                    <div class="stat-card__label">Fallecidos</div>
+                    <div class="stat-card__pct">61.6%</div>
+                </div>
+                <div class="stat-card animate-on-scroll" id="stat-age">
+                    <div class="stat-card__icon">📊</div>
+                    <div class="stat-card__value">29.4</div>
+                    <div class="stat-card__label">Edad promedio</div>
+                    <div class="stat-card__pct">0.4 — 80 años</div>
+                </div>
+            </div>
+
+            <!-- Donut: Survived vs Perished -->
+            <div class="chart-row">
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Distribución de Supervivencia</h3>
+                    <canvas id="chart-survival-donut" width="300" height="300"></canvas>
+                </div>
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Distribución por Clase</h3>
+                    <canvas id="chart-class-bar" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Distribución por Sexo</h3>
+                    <canvas id="chart-sex-bar" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Models Comparison -->
+    <section class="section section--dark" id="models">
+        <div class="container">
+            <div class="section__header">
+                <span class="section__label">MODELOS</span>
+                <h2 class="section__title">Comparación de Algoritmos</h2>
+                <p class="section__desc">Dos modelos entrenados y evaluados sobre el 20% de datos reservados para prueba.</p>
+            </div>
+
+            <div class="models-grid">
+                <!-- Random Forest Card -->
+                <div class="model-card animate-on-scroll" id="card-rf">
+                    <div class="model-card__header">
+                        <div class="model-card__badge">RF</div>
+                        <h3 class="model-card__name">Random Forest</h3>
+                        <p class="model-card__sub">100 árboles · max_depth=6</p>
+                    </div>
+                    <div class="model-card__accuracy">
+                        <svg class="accuracy-ring" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="52" class="accuracy-ring__bg"/>
+                            <circle cx="60" cy="60" r="52" class="accuracy-ring__fill" data-pct="79.89" id="ring-rf"/>
+                        </svg>
+                        <div class="accuracy-ring__label">
+                            <span class="accuracy-ring__value" id="acc-rf">0%</span>
+                            <span class="accuracy-ring__text">Accuracy</span>
+                        </div>
+                    </div>
+                    <div class="model-card__metrics">
+                        <div class="metric-row">
+                            <span class="metric-row__label">Precision</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="82.35" style="--bar-color: var(--gold)"></div></div>
+                            <span class="metric-row__value">82.35%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-row__label">Recall</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="60.87" style="--bar-color: var(--cyan)"></div></div>
+                            <span class="metric-row__value">60.87%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-row__label">F1-Score</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="70.00" style="--bar-color: var(--rose)"></div></div>
+                            <span class="metric-row__value">70.00%</span>
+                        </div>
+                    </div>
+                    <!-- Confusion Matrix -->
+                    <div class="model-card__cm">
+                        <h4 class="cm__title">Matriz de Confusión</h4>
+                        <table class="cm-table">
+                            <thead>
+                                <tr><th></th><th>Pred: 0</th><th>Pred: 1</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="cm-label">Real: 0</td><td class="cm-tn">101</td><td class="cm-fp">9</td></tr>
+                                <tr><td class="cm-label">Real: 1</td><td class="cm-fn">27</td><td class="cm-tp">42</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VS Divider -->
+                <div class="vs-divider animate-on-scroll">
+                    <span class="vs-divider__text">VS</span>
+                </div>
+
+                <!-- Logistic Regression Card -->
+                <div class="model-card animate-on-scroll" id="card-lr">
+                    <div class="model-card__header">
+                        <div class="model-card__badge model-card__badge--lr">LR</div>
+                        <h3 class="model-card__name">Regresión Logística</h3>
+                        <p class="model-card__sub">max_iter=1000</p>
+                    </div>
+                    <div class="model-card__accuracy">
+                        <svg class="accuracy-ring" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="52" class="accuracy-ring__bg"/>
+                            <circle cx="60" cy="60" r="52" class="accuracy-ring__fill accuracy-ring__fill--lr" data-pct="80.45" id="ring-lr"/>
+                        </svg>
+                        <div class="accuracy-ring__label">
+                            <span class="accuracy-ring__value" id="acc-lr">0%</span>
+                            <span class="accuracy-ring__text">Accuracy</span>
+                        </div>
+                    </div>
+                    <div class="model-card__metrics">
+                        <div class="metric-row">
+                            <span class="metric-row__label">Precision</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="79.31" style="--bar-color: var(--gold)"></div></div>
+                            <span class="metric-row__value">79.31%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-row__label">Recall</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="66.67" style="--bar-color: var(--cyan)"></div></div>
+                            <span class="metric-row__value">66.67%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-row__label">F1-Score</span>
+                            <div class="metric-row__bar"><div class="metric-row__fill" data-width="72.44" style="--bar-color: var(--rose)"></div></div>
+                            <span class="metric-row__value">72.44%</span>
+                        </div>
+                    </div>
+                    <!-- Confusion Matrix -->
+                    <div class="model-card__cm">
+                        <h4 class="cm__title">Matriz de Confusión</h4>
+                        <table class="cm-table">
+                            <thead>
+                                <tr><th></th><th>Pred: 0</th><th>Pred: 1</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="cm-label">Real: 0</td><td class="cm-tn">98</td><td class="cm-fp">12</td></tr>
+                                <tr><td class="cm-label">Real: 1</td><td class="cm-fn">23</td><td class="cm-tp">46</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Radar Comparison -->
+            <div class="chart-row chart-row--center">
+                <div class="chart-card chart-card--wide animate-on-scroll">
+                    <h3 class="chart-card__title">Comparación de Métricas</h3>
+                    <canvas id="chart-metrics-radar" width="500" height="350"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Importance -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section__header">
+                <span class="section__label">FEATURES</span>
+                <h2 class="section__title">Importancia de Características</h2>
+                <p class="section__desc">¿Qué factores determinaron más la supervivencia? El Random Forest revela los patrones ocultos.</p>
+            </div>
+
+            <div class="features-container animate-on-scroll">
+                <div class="feature-bars" id="feature-bars">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Survival Analysis -->
+    <section class="section section--dark" id="survival">
+        <div class="container">
+            <div class="section__header">
+                <span class="section__label">ANÁLISIS</span>
+                <h2 class="section__title">Tasas de Supervivencia</h2>
+                <p class="section__desc">Desglose de supervivencia por las variables más significativas del dataset.</p>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Por Clase</h3>
+                    <canvas id="chart-surv-class" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Por Sexo</h3>
+                    <canvas id="chart-surv-sex" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card animate-on-scroll">
+                    <h3 class="chart-card__title">Por Puerto de Embarque</h3>
+                    <canvas id="chart-surv-embarked" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prediction Section -->
+    <section class="section" id="predict">
+        <div class="container">
+            <div class="section__header">
+                <span class="section__label">PREDICCIÓN</span>
+                <h2 class="section__title">¿Habrías Sobrevivido?</h2>
+                <p class="section__desc">Ingresa los datos de un pasajero ficticio y ambos modelos predecirán su destino.</p>
+            </div>
+
+            <div class="predict-container animate-on-scroll">
+                <form class="predict-form" id="predict-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-pclass">Clase</label>
+                            <select id="input-pclass">
+                                <option value="1">1ª Clase — Upper</option>
+                                <option value="2">2ª Clase — Middle</option>
+                                <option value="3" selected>3ª Clase — Lower</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-sex">Sexo</label>
+                            <select id="input-sex">
+                                <option value="male">Masculino</option>
+                                <option value="female">Femenino</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-age">Edad</label>
+                            <input type="number" id="input-age" value="28" min="0" max="100" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-sibsp">Hermanos/Cónyuge</label>
+                            <input type="number" id="input-sibsp" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-parch">Padres/Hijos</label>
+                            <input type="number" id="input-parch" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-fare">Tarifa (£)</label>
+                            <input type="number" id="input-fare" value="7.25" min="0" max="600" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-embarked">Puerto de Embarque</label>
+                            <select id="input-embarked">
+                                <option value="S">Southampton</option>
+                                <option value="C">Cherbourg</option>
+                                <option value="Q">Queenstown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="predict-btn" id="predict-btn">
+                        <span class="predict-btn__text">Predecir Destino</span>
+                        <span class="predict-btn__icon">⚓</span>
+                    </button>
+                </form>
+
+                <div class="predict-results" id="predict-results" style="display: none;">
+                    <div class="predict-result" id="result-rf">
+                        <div class="predict-result__badge">RF</div>
+                        <div class="predict-result__model">Random Forest</div>
+                        <div class="predict-result__verdict" id="verdict-rf">—</div>
+                    </div>
+                    <div class="predict-result" id="result-lr">
+                        <div class="predict-result__badge predict-result__badge--lr">LR</div>
+                        <div class="predict-result__model">Regresión Logística</div>
+                        <div class="predict-result__verdict" id="verdict-lr">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+                <span class="footer__logo">⚓ RMS TITANIC ML Dashboard</span>
+                <span class="footer__copy">Aprendizaje Supervisado · 2026</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
